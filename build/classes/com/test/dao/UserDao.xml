@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:接口路径 -->
+<mapper namespace="com.test.dao.UserDao"> 
+
+	<!-- 登录 -->
+	<select id="findUser" parameterType="com.test.domain.User" resultType="com.test.domain.User">
+		select * from user where username=#{username} and password=#{password}
+	</select>
+	<!-- 注册 -->
+	<insert id="registerUser" parameterType="com.test.domain.User">
+		insert into user values (#{uid},#{username},#{password})
+	</insert>
+	<!-- 查询所有用户 -->
+	<select id="findAllUser" resultType="com.test.domain.User">
+		select * from user
+	</select>
+</mapper>

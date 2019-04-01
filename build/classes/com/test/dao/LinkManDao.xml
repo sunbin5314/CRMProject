@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:接口路径 -->
+<mapper namespace="com.test.dao.LinkManDao"> 
+	
+	<!-- 查询所有客户Json -->
+	<select id="allCustomerJson" resultType="com.test.domain.CustomerModel">
+		select * from customer where isdelete='1'
+	</select>
+	<!-- 添加联系人 -->
+	<insert id="addLink" parameterType="com.test.domain.LinkManModel">
+		insert into linkman (lkmid,lkmName,lkmGender,lkmPhone,lkmMobile,isdelete,cid)
+		values(#{lkmid},#{lkmName},#{lkmGender},#{lkmPhone},#{lkmMobile},'1',#{customerModel.cid})
+	</insert>
+	<!-- 查找所有联系人 -->
+	<select id="tolist" resultMap="linkManModel">
+		select * from linkman lk,customer cus where lk.cid=cus.cid and lk.isdelete='1'
+	</select>
+	<!-- 根据id查询联系人 -->
+	<select id="toupdate" parameterType="com.test.domain.LinkManModel" resultMap="linkManModel">
+		select * from linkman lk,customer cus where lk.cid=cus.cid and lk.isdelete='1'
+		and lk.lkmid=#{lkmid}
+	</select>
+	<!-- 修改联系人 -->
+	<update id="updateMan" parameterType="com.test.domain.LinkManModel">
+		update linkman set lkmName=#{lkmName},lkmGender=#{lkmGender},lkmPhone=#{lkmPhone},
+		lkmMobile=#{lkmMobile},cid=#{customerModel.cid} and isdelete='1' where lkmid=#{lkmid}
+	</update>
+	<!-- 删除联系人 -->
+	<update id="deleteMan" parameterType="com.test.domain.LinkManModel">
+		update linkman set isdelete='2' where lkmid = #{lkmid}
+	</update>
+	<!-- 多条件查询总数据量 -->
+	<select id="findLinkCondition" parameterType="com.test.domain.LinkManModel" resultType="int">
+		select count(*) from linkman lk,customer cus
+		where lk.cid=cus.cid and lk.isdelete='1'
+		<if test="lkmName != null and lkmName != ''">
+			and lkmName like concat("%",#{lkmName},"%")
+		</if>
+		<if test="customerModel.cname != null and customerModel.cname != ''">
+			and cname = #{customerModel.cname}
+		</if>
+	</select>
+	<!-- 多条件查询每页展示的数据 -->
+	<select id="linkManMorePage" parameterType="hashmap" resultMap="linkManModel">
+		select * from linkman lk,customer cus
+		where lk.cid=cus.cid
+		<if test="linkman.lkmName != null and linkman.lkmName != ''">
+			and lkmName like concat("%",#{linkman.lkmName},"%")
+		</if>
+		<if test="linkman.customerModel.cname != null and linkman.customerModel.cname != ''">
+			and cname = #{linkman.customerModel.cname}
+		</if>
+		 and lk.isdelete='1'
+		 limit #{pageBean.begin},#{pageBean.pageSize}
+	</select>
+	<!-- 配置一对多关系 -->
+	<!-- 配置级别和客户一对多关系 -->
+	<!-- 配置级别部分 
+		type: 实体类路径
+		id: 名称，一般类名首字母小写
+	-->
+	<resultMap type="com.test.domain.LeveModel" id="leveModel">
+	<!-- id 主键,实体类属性和表字段对应 -->
+	<id property="lid" column="lid"/>
+	<!-- 其他属性 -->
+	<result property="lname" column="lname"/>
+	</resultMap>
+	<!-- 配置CustomerModel -->
+	<resultMap type="com.test.domain.CustomerModel" id="customerModel">
+		<id property="cid" column="cid"/>
+		<result property="cname" column="cname"/>
+		<result property="csource" column="csource"/>
+		<result property="cphone" column="cphone"/>
+		<result property="caddress" column="caddress"/>
+	<!-- 表示客户所属级别,在客户实体类有级别对象类型的属性
+		思想:在多里面表示一配置使用association,property属性名称,resultMap配置级别的resultMap的id值
+	 -->
+		<association property="leveModel" resultMap="leveModel"></association>
+	</resultMap>
+	<resultMap type="com.test.domain.LinkManModel" id="linkManModel">
+		<id property="lkmid" column="lkmid"></id>
+		<result property="lkmName" column="lkmName"/>
+		<result property="lkmGender" column="lkmGender"/>
+		<result property="lkmPhone" column="lkmPhone"/>
+		<result property="lkmMobile" column="lkmMobile"/>
+		<!-- 多里面配置一 -->
+		<association property="customerModel" resultMap="customerModel"></association>
+	</resultMap>
+	
+</mapper>

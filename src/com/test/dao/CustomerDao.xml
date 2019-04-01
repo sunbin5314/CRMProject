@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:接口路径 -->
+<mapper namespace="com.test.dao.CustomerDao"> 
+
+<!-- 查询所有级别 -->
+	<select id="findAllLevel" resultType="com.test.domain.LeveModel">
+		select * from level 
+	</select>
+	<!-- 添加客户 -->
+	<insert id="addCustomer" parameterType="com.test.domain.CustomerModel">
+		insert into customer(cid,cname,csource,cphone,caddress,clid,isdelete)
+		values(#{cid},#{cname},#{csource},#{cphone},#{caddress},#{leveModel.lid},'1')
+	</insert>
+	<!-- 客户列表 -->
+	<select id="findAll" resultMap="customerModel">
+		select * from customer cus,level le where cus.clid=le.lid and cus.isdelete='1'
+	</select>
+	<!-- 根据cid查询 -->
+	<select id="findOne" parameterType="com.test.domain.CustomerModel" resultMap="customerModel">
+		select * from customer cus,level le where cus.clid=le.lid 
+		and cus.cid=#{cid} and cus.isdelete='1'
+	</select>
+	<!-- 修改 -->
+	<update id="update" parameterType="com.test.domain.CustomerModel">
+		update customer set cname=#{cname},csource=#{csource},cphone=#{cphone},caddress=#{caddress},
+		clid=#{leveModel.lid},isdelete='1' where cid=#{cid}
+	</update>
+	<!-- 逻辑删除 -->
+	<update id="delete">
+		update customer set isdelete='2' where cid=#{cid}
+	</update>
+	<!-- 多条件查询总数据量 -->
+		<select id="findCusCondition" parameterType="com.test.domain.CustomerModel" resultType="int">
+			select count(*) from customer cus,level le 
+			where cus.clid=le.lid and isdelete='1'
+			<if test="cname != null and cname !=''">
+				and cname like concat("%",#{cname},"%")
+			</if>
+			<if test="caddress != null and caddress !=''">
+				and caddress = #{caddress}
+			</if>
+		</select>
+	<!-- 多条件查询每页显示的数据 -->
+		<select id="findLikeMorePage" parameterType="hashmap" resultMap="customerModel">
+			select * from customer cus,level le 
+			where cus.clid=le.lid 
+			<if test="customer.cname != null and customer.cname != ''">
+				and cname like concat("%",#{customer.cname},"%")
+			</if>
+			<if test="customer.caddress != null and customer.caddress != ''">
+				and caddress = #{customer.caddress}
+			</if>
+			and isdelete='1'
+			limit #{pageBean.begin}, #{pageBean.pageSize}
+		</select>
+		<!-- 查询每个级别的客户数量 -->
+		<select id="countLevel" resultType="hashmap">
+			SELECT COUNT(*) AS num,le.lname 
+			FROM customer cus ,LEVEL le  
+			WHERE cus.clid=le.lid AND cus.isdelete='1'
+			GROUP BY le.lname
+		</select>
+	<!-- 配置一对多关系 -->
+	<!-- 配置级别和客户一对多关系 -->
+	<!-- 配置级别部分 
+		type: 实体类路径
+		id: 名称，一般类名首字母小写
+	-->
+	<resultMap type="com.test.domain.LeveModel" id="leveModel">
+	<!-- id 主键,实体类属性和表字段对应 -->
+	<id property="lid" column="lid"/>
+	<!-- 其他属性 -->
+	<result property="lname" column="lname"/>
+	</resultMap>
+	<!-- 配置CustomerModel -->
+	<resultMap type="com.test.domain.CustomerModel" id="customerModel">
+		<id property="cid" column="cid"/>
+		<result property="cname" column="cname"/>
+		<result property="csource" column="csource"/>
+		<result property="cphone" column="cphone"/>
+		<result property="caddress" column="caddress"/>
+	<!-- 表示客户所属级别,在客户实体类有级别对象类型的属性
+		思想:在多里面表示一配置使用association,property属性名称,resultMap配置级别的resultMap的id值
+	 -->
+		<association property="leveModel" resultMap="leveModel"></association>
+	</resultMap>
+	
+</mapper>

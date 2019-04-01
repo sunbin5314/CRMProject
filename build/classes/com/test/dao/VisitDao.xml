@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:接口路径 -->
+<mapper namespace="com.test.dao.VisitDao"> 
+	<!-- 添加拜访记录 -->
+	<insert id="addVisit" parameterType="com.test.domain.VisitModel">
+		insert into visit (visitid,cid,uid,visitaddress,visitContent,isdelete)
+		values(#{visitid},#{customerModel.cid},#{user.uid},#{visitaddress},#{visitContent},'1')
+	</insert>
+	<!-- 查询所有拜访记录 -->
+	<select id="findAllVisit" resultType="hashmap">
+		select * from visit v join user u on v.uid=u.uid
+		join customer c on c.cid=v.cid and v.isdelete='1'
+	</select>
+	<!-- 查询要修改的对象 -->
+	<select id="findOne" parameterType="com.test.domain.VisitModel" resultMap="visitModel">
+		select * from visit v join user u on v.uid=u.uid
+		join customer c on c.cid=v.cid and v.visitid=#{visitid} 
+	</select>
+	<!-- 修改拜访记录 -->
+	<update id="updateVisit" parameterType="com.test.domain.VisitModel">
+		update visit set cid=#{customerModel.cid},uid=#{user.uid},visitaddress=#{visitaddress},
+		visitContent=#{visitContent} where visitid=#{visitid}
+	</update>
+	<!-- 逻辑删除 -->
+	<update id="deleteVisit" parameterType="com.test.domain.VisitModel">
+		update visit set isdelete='2' where visitid=#{visitid}
+	</update>
+	<!-- 配置一对多关系 -->
+	<!-- 配置级别和客户一对多关系 -->
+	<!-- 配置级别部分 
+		type: 实体类路径
+		id: 名称，一般类名首字母小写
+	-->
+	<resultMap type="com.test.domain.LeveModel" id="leveModel">
+	<!-- id 主键,实体类属性和表字段对应 -->
+	<id property="lid" column="lid"/>
+	<!-- 其他属性 -->
+	<result property="lname" column="lname"/>
+	</resultMap>
+	<!-- 配置CustomerModel -->
+	<resultMap type="com.test.domain.CustomerModel" id="customerModel">
+		<id property="cid" column="cid"/>
+		<result property="cname" column="cname"/>
+		<result property="csource" column="csource"/>
+		<result property="cphone" column="cphone"/>
+		<result property="caddress" column="caddress"/>
+	<!-- 表示客户所属级别,在客户实体类有级别对象类型的属性
+		思想:在多里面表示一配置使用association,property属性名称,resultMap配置级别的resultMap的id值
+	 -->
+		<association property="leveModel" resultMap="leveModel"></association>
+	</resultMap>
+	<resultMap type="com.test.domain.LinkManModel" id="linkManModel">
+		<id property="lkmid" column="lkmid"></id>
+		<result property="lkmName" column="lkmName"/>
+		<result property="lkmGender" column="lkmGender"/>
+		<result property="lkmPhone" column="lkmPhone"/>
+		<result property="lkmMobile" column="lkmMobile"/>
+		<!-- 多里面配置一 -->
+		<association property="customerModel" resultMap="customerModel"></association>
+	</resultMap>
+	<!-- 配置用户的resultmap -->
+	<resultMap type="com.test.domain.User" id="user">
+		<id property="uid" column="uid"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+	</resultMap>
+	<!-- 配置拜访 -->
+	<resultMap type="com.test.domain.VisitModel" id="visitModel">
+		<id property="visitid" column="visitid"/>
+		<result property="visitaddress" column="visitaddress"/>
+		<result property="visitContent" column="visitContent"/>
+		<!-- 多里面配置一 -->
+		<!-- 配置客户 -->
+		<association property="customerModel" resultMap="customerModel"></association>
+		<!-- 配置用户 -->
+		<association property="user" resultMap="user"></association>
+	</resultMap>
+</mapper>

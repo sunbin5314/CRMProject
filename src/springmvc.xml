@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+    	 http://www.springframework.org/schema/context/spring-context.xsd
+         http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop.xsd
+         http://www.springframework.org/schema/tx
+     	 http://www.springframework.org/schema/tx/spring-tx.xsd
+     	 http://www.springframework.org/schema/mvc
+         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+         
+         <!-- 1.开启注解扫描 -->
+		 <context:component-scan base-package="com.test"></context:component-scan>
+		 <!-- 2.配置处理器映射器和处理器适配器 -->
+		 <mvc:annotation-driven></mvc:annotation-driven>
+	
+	<!-- 视图解析器 -->	
+	<bean id="jspViewResolver" 
+	class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+			<!-- 配置跳转页面 -->
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<!-- 跳转页面的后缀名 -->
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<!-- 文件上传解析器 -->
+	<bean id="multipartResolver"
+	class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	<!-- 上传文件大小 -1表示没有限制 -->
+	<property name="maxUploadSize" value="-1" />
+	</bean>
+	
+	<!-- 配置c3p0 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+		<property name="jdbcUrl" value="jdbc:mysql:///orm"></property>
+		<property name="user" value="root"></property>
+		<property name="password" value="123"></property>
+	</bean>
+	
+	
+	<!-- 配置拦截器 -->
+	<!-- <mvc:interceptors>
+		<mvc:interceptor>
+		拦截所有
+			<mvc:mapping path="/**"/>
+			指定哪些拦截器不拦截
+			<mvc:exclude-mapping path="/login.action"/>
+			制定拦截器位置
+			<bean class="com.test.interceptor.LoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors> -->
+	
+	
+	<!-- Mybatis整合spring配置 -->
+	<!-- 配置SqlSessionFactory对象的创建 -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 指定dao对应的配置文件的位置
+			dao的配置文件和接口可以不在一个包里面,名称可以不相同
+		 -->
+		 <property name="mapperLocations" value="classpath:com/test/dao/*Dao.xml"></property>
+	</bean>
+	<!-- 配置mapper扫描器 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 根据名称匹配 -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"></property>
+		<!-- 配置dao接口和对应配置文件的路径 -->
+		<property name="basePackage" value="com.test.dao"></property>
+	</bean>
+	
+</beans>
